@@ -1,8 +1,8 @@
-GET http://localhost:5109/games
+GET http://localhost:5000/games
 ###
-GET http://localhost:5109/games/7
+GET http://localhost:5000/games/7
 ###
-POST http://localhost:5109/games
+POST http://localhost:5000/games
 Content-Type: application/json
 
 {
