@@ -1,6 +1,8 @@
 using GameStore.API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using GameStore.API.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,9 @@ builder.Services.AddAuthorization(options =>
         .RequireAuthenticatedUser()
         .Build();
 });
+
+builder.Services.AddDbContext<GameStoreContext>(options =>
+    options.UseNpgsql("GameStoreDB"));
 
 List<GameDTO> games=[
     new GameDTO(1,"The Legend of Zelda: Breath of the Wild","Action-Adventure",59.99m,new DateTime(2017,3,3),"Nintendo","Nintendo"),

@@ -1,3 +1,5 @@
+namespace GameStore.API.DTOs;
+
 public record CreateGameDTO
 (string Name, 
 string Genre, 
