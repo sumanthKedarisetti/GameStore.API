@@ -33,9 +33,7 @@ services:
       - gamestore-net
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: saisumanthkedarisetti/sumanth:latest
     container_name: gamestore-api
     environment:
       ASPNETCORE_HTTP_PORTS: "5005"
