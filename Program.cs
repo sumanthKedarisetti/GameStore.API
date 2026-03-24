@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using GameStore.API.Entities;
+using GameStore.API.Interfaces.IServices;
+using GameStore.API.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var keycloakSection = builder.Configuration.GetSection("Keycloak");
@@ -32,6 +35,7 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 builder.Services.AddControllers();
+builder.Services.AddScoped<IGameService, GameService>();
 
 builder.Services.AddDbContext<GameStoreContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("GameStoreDB")));

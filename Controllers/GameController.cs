@@ -2,89 +2,68 @@
 using GameStore.API.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
+using GameStore.API.Interfaces.IServices;
 
 [ApiController]
 [Route("api/allgames")]
 public class GameController : ControllerBase
 {
-     private readonly GameStoreContext _context;
+     
 
-     public GameController(GameStoreContext context)
+     public GameController(IGameService gameService)
      {
-         _context = context;
+         _gameService = gameService;
      }
+     private readonly IGameService _gameService;
 
      [HttpGet]
      public async Task<ActionResult<IEnumerable<Game>>> GetGames()
      {
-         var games = await _context.Games.AsNoTracking().ToListAsync();
-         return Ok(games);
+         var result = await _gameService.GetGames();
+         return Ok(result);
     }
     [HttpGet("{id}")]
-    public async Task<ActionResult<Game>> GetGame(int id)
+    public async Task<ActionResult<Game>> GetGamebyId(int id)
     {
-        var game = await _context.Games.AsNoTracking().FirstOrDefaultAsync(g => g.Id == id);
-        if (game == null)
+        var result = await _gameService.GetGamebyId(id);
+        if(result==null)
         {
             return NotFound();
         }
-        return Ok(game);
+        return Ok(result);
     }
     [HttpPost]
     public async Task<ActionResult<Game>> CreateGame(Game game)
     {
-        _context.Games.Add(game);//Add the new game to the context
-        await _context.SaveChangesAsync();//save the changes to the database
-        return CreatedAtAction(nameof(GetGame), new { id = game.Id }, game);//return a 201 created response with the location of the new game
+        var result = await _gameService.CreateGame(game);
+        return result;
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateGame(int id, Game updatedGame)
     {
-        if (id != updatedGame.Id)
+       var result= await _gameService.UpdateGame(id, updatedGame);
+        if(result is NotFoundResult)
+        {
+            return NotFound();
+        }
+        if(result is BadRequestResult)
         {
             return BadRequest();
         }
-
-        _context.Entry(updatedGame).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!GameExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
+      return NoContent();
     }
 
-    private bool GameExists(int id)
-    {
-        return _context.Games.Any(e => e.Id == id);
-    }
+    
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteGame(int id)
     {
-        var game = await _context.Games.FindAsync(id);
-        if (game == null)
+        var result = await _gameService.DeleteGame(id);
+        if(result is NotFoundResult)
         {
             return NotFound();
         }
-
-        _context.Games.Remove(game);
-        await _context.SaveChangesAsync();
-
         return NoContent();
     }
 
