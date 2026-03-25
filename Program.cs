@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using GameStore.API.Entities;
 using GameStore.API.Interfaces.IServices;
 using GameStore.API.Services;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,12 +31,37 @@ builder.Services.AddAuthentication(options=>
 });
 builder.Services.AddAuthorization(options =>
 {
-    // Enforce authentication for all endpoints by default
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
 });
 builder.Services.AddControllers();
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes.Add("Bearer", new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Paste your Keycloak JWT token here (without the 'Bearer' prefix)"
+        });
+        document.SecurityRequirements.Add(new OpenApiSecurityRequirement
+        {
+            [
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                }
+            ] = Array.Empty<string>()
+        });
+        return Task.CompletedTask;
+    });
+});
+// Registering the GameService with the dependency injection container
 builder.Services.AddScoped<IGameService, GameService>();
 
 builder.Services.AddDbContext<GameStoreContext>(options =>
@@ -44,7 +71,16 @@ builder.Services.AddDbContext<GameStoreContext>(options =>
 var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+// Enable middleware to serve generated OpenAPI as a JSON endpoint and the Swagger UI
+app.MapOpenApi().AllowAnonymous();
+// Enable middleware to serve generated Swagger as a JSON endpoint and the Swagger UI
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/openapi/v1.json", "GameStore API v1");
+    options.EnablePersistAuthorization();
+});
+
+app.MapControllers().RequireAuthorization();
 // default root endpoint
 app.MapGet("/", () => "Game Store API is running. Use a Bearer token to access protected endpoints.").AllowAnonymous();
 // Run the application
