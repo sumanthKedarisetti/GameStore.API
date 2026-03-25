@@ -1,5 +1,6 @@
 
 using GameStore.API.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GameStore.API.Interfaces.IServices;
@@ -22,6 +23,19 @@ public class GameController : ControllerBase
          var result = await _gameService.GetGames();
          return Ok(result);
     }
+
+    [AllowAnonymous]
+    [HttpGet("ci-cd-check")]
+    public ActionResult<object> GetCiCdCheck()
+    {
+        return Ok(new
+        {
+            status = "ok",
+            message = "CI/CD validation endpoint is running",
+            version = "v1"
+        });
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<Game>> GetGamebyId(int id)
     {
