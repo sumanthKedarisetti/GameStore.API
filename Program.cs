@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using GameStore.API.Entities;
 using GameStore.API.Interfaces.IServices;
 using GameStore.API.Services;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi.Models;
 
@@ -17,6 +18,19 @@ var audience = keycloakSection["Audience"] ?? keycloakSection["ClientId"]
     ?? throw new InvalidOperationException("Missing Keycloak:Audience (or Keycloak:ClientId) in configuration.");
 var requireHttpsMetadata = keycloakSection.GetValue<bool?>("RequireHttpsMetadata")
     ?? authority.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
+builder.Services.AddHttpLogging(options =>
+{
+    options.LoggingFields = HttpLoggingFields.RequestMethod
+        | HttpLoggingFields.RequestPath
+        | HttpLoggingFields.ResponseStatusCode
+        | HttpLoggingFields.Duration;
+    options.CombineLogs = true;
+});
 
 builder.Services.AddAuthentication(options=>
 {
@@ -69,6 +83,9 @@ builder.Services.AddDbContext<GameStoreContext>(options =>
 
 //building the app
 var app = builder.Build();
+
+app.UseHttpLogging();
+
 app.UseAuthentication();
 app.UseAuthorization();
 // Enable middleware to serve generated OpenAPI as a JSON endpoint and the Swagger UI
