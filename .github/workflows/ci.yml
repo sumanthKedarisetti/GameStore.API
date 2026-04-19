@@ -28,3 +28,4 @@ jobs:
           tags: |
             saisumanthkedarisetti/sumanth:latest
             saisumanthkedarisetti/sumanth:${{ github.sha }}
+            
