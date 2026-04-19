@@ -8,6 +8,7 @@ using GameStore.API.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi.Models;
+using Microsoft.IdentityModel.Tokens;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +43,10 @@ builder.Services.AddAuthentication(options=>
     options.Authority = authority;
     options.Audience = audience;
     options.RequireHttpsMetadata = requireHttpsMetadata;
+    options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false
+        };
 });
 builder.Services.AddAuthorization(options =>
 {
